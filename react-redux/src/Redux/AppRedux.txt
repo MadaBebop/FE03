@@ -1,0 +1,112 @@
+// configurare il tuo store Redux, definire azioni e riduttori appropriati
+//  per gestire i dati dell'invoice e collegare il componente ReactReduxComponent 
+// al tuo store utilizzando connect dal pacchetto react-redux.
+
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateInvoice } from './reducers'; 
+
+
+function InvoiceHeader() {
+  const invoice = useSelector(state => state.invoice); //...e li prendo
+  let date = new Date(invoice.date);
+  let giorno = date.getDate();
+  let mese = date.getMonth() + 1;
+  let anno = date.getFullYear();
+  let ore = date.getHours();
+  let completeDate = giorno + '/' + mese + '/' + anno + ' ' + ore;
+
+  return (
+    <div className="invoiceapp-invoice__header">
+      <div className="invoiceapp-invoice__header__title invoiceapp-invoice__header__title--company">
+        <span>Company: {invoice.company}</span>
+      </div>
+      <div className="invoiceapp-invoice__data">
+        <span className="invoiceapp-invoice__header__title invoiceapp-invoice__header__title--client">
+          CLient: {invoice.client}
+        </span>
+        <span className="invoiceapp-invoice__data__value invoiceapp-invoice__data__value--invoice">
+          Invoice: {invoice.number}
+        </span>
+        <span className="invoiceapp-invoice__data__value invoiceapp-invoice__data__value--date">
+          Date: {completeDate}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function BottomHeader() {
+  const invoice = useSelector(state => state.invoice);
+  let totalCostInvoice = 0;
+
+  invoice.items.forEach(item => {
+    totalCostInvoice += item.price * item.quantity;
+  });
+
+  return (
+    <>
+      <div className="invoiceapp-invoice__paging">
+        <button>&#60;</button>
+        <span>Page 1 di 1</span>
+        <button disabled>&#62;</button>
+      </div>
+      <div className="invoiceapp-invoice__summary">
+        <span>{totalCostInvoice}</span>
+      </div>
+    </>
+  );
+}
+
+function TableData({ description, quantity, price, tax }) {
+  let amount = quantity * price;
+  return (
+    <tr className="invoiceapp-invoice__table-row">
+      <td>{description}</td>
+      <td>{quantity}</td>
+      <td>{price}</td>
+      <td>{tax}</td>
+      <td>{amount}</td>
+    </tr>
+  );
+}
+
+function InvoiceItems() {
+  const invoice = useSelector(state => state.invoice);
+  let n = 0;
+  return (
+    <>
+      {invoice.items.map(item => (
+        <TableData {...item} key={invoice.number + (++n)} />
+      ))}
+    </>
+  );
+}
+
+function AppRedux({invoice}) {
+
+  const dispatch = useDispatch();
+  // usre-> dispatch(updateInvoice(invoice));
+  dispatch(updateInvoice(invoice)); // Dispaccia l'azione con i nuovi dati
+ 
+  return (
+    <div className="invoiceapp invoiceapp-invoice">
+      <InvoiceHeader />
+      <table className="invoiceapp-invoice__table">
+        <tbody>
+          <tr className="invoiceapp-invoice__table-row invoiceapp-invoice__table-row--header">
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Unit price</th>
+            <th>Tax</th>
+            <th>Amount</th>
+          </tr>
+          <InvoiceItems />
+        </tbody>
+      </table>
+      <BottomHeader />
+    </div>
+  );
+}
+
+export default AppRedux;
